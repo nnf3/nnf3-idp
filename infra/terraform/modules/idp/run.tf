@@ -35,7 +35,10 @@ resource "google_cloud_run_v2_service" "kratos_public" {
 
   # API writes a service-level scaling block (manual_instance_count=0) that we do not set.
   lifecycle {
-    ignore_changes = [scaling]
+    ignore_changes = [
+      scaling,
+      template[0].containers[0].image,
+    ]
   }
 
   template {
@@ -150,7 +153,10 @@ resource "google_cloud_run_v2_service" "kratos_admin" {
 
   # API writes a service-level scaling block (manual_instance_count=0) that we do not set.
   lifecycle {
-    ignore_changes = [scaling]
+    ignore_changes = [
+      scaling,
+      template[0].containers[0].image,
+    ]
   }
 
   template {
@@ -274,7 +280,10 @@ resource "google_cloud_run_v2_service" "hydra_public" {
 
   # API writes a service-level scaling block (manual_instance_count=0) that we do not set.
   lifecycle {
-    ignore_changes = [scaling]
+    ignore_changes = [
+      scaling,
+      template[0].containers[0].image,
+    ]
   }
 
   template {
@@ -360,7 +369,10 @@ resource "google_cloud_run_v2_service" "hydra_admin" {
 
   # API writes a service-level scaling block (manual_instance_count=0) that we do not set.
   lifecycle {
-    ignore_changes = [scaling]
+    ignore_changes = [
+      scaling,
+      template[0].containers[0].image,
+    ]
   }
 
   template {
@@ -445,7 +457,10 @@ resource "google_cloud_run_v2_service" "ui" {
 
   # API writes a service-level scaling block (manual_instance_count=0) that we do not set.
   lifecycle {
-    ignore_changes = [scaling]
+    ignore_changes = [
+      scaling,
+      template[0].containers[0].image,
+    ]
   }
 
   template {

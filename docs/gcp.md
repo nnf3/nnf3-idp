@@ -102,7 +102,8 @@ terraform init -backend-config=backend.hcl
 terraform apply \
   -target=module.idp.google_project_service.services \
   -target=module.idp.google_artifact_registry_repository.idp \
-  -target=module.idp.google_project_iam_member.cloudbuild_ar
+  -target=module.idp.google_project_iam_member.cloudbuild_ar \
+  -target=module.idp.google_project_iam_member.cloudbuild_run
 ```
 
 ## 4. イメージをビルドする
@@ -113,10 +114,17 @@ terraform apply \
 export PROJECT_ID=YOUR_PROJECT_ID
 export ENV=dev
 export REGION=asia-southeast1
-./scripts/build-gcp-images.sh
+# 初回だけ Terraform の bootstrap タグと揃える
+IMAGE_TAG=v26.2.0-r1 ./scripts/build-gcp-images.sh
 ```
 
-Kratos / Hydra の設定入りイメージに加え、公式 UI の前に nginx を置いた UI イメージも `idp-dev`（prd なら `idp-prd`）へ推します。nginx は Kratos のブラウザ flow を UI と同じホストにまとめるための薄い proxy です。
+Kratos / Hydra の設定入りイメージに加え、公式 UI の前に nginx を置いた UI イメージも `idp-dev`（prd なら `idp-prd`）へ push します。nginx は Kratos のブラウザ flow を UI と同じホストにまとめるための薄い proxy です。
+
+初回は Cloud Run がまだないので **push のみ** です（`DEPLOY=auto` がサービス未作成を検知して deploy をスキップします）。
+
+2 回目以降は `./scripts/build-gcp-images.sh` だけで、git の短い SHA をタグにして **5 サービス + 4 Job すべて** を同じイメージへ更新します。Terraform の `image_tag` は初回 bootstrap 用で、以降は `ignore_changes` により Cloud Build 側の更新を維持します。
+
+スキーマが変わったビルドのあとは `./scripts/gcp-migrate.sh` も実行してください。
 
 ## 5. Job まで apply してマイグレーションする
 
@@ -191,7 +199,7 @@ authorization code は一度しか使えません。callback 側が落ちたあ�
 
 | 作業 | 方法 |
 |---|---|
-| 設定やイメージ更新 | `ENV=dev ./scripts/build-gcp-images.sh` のあと `envs/dev` で `terraform apply`。スキーマが変わったら migrate |
+| 設定やイメージ更新 | `ENV=dev ./scripts/build-gcp-images.sh`（ビルド + Cloud Run 反映）。スキーマが変わったら migrate |
 | Hydra janitor | 日曜 3:00 JST に Scheduler が `hydra-janitor-dev` を実行。手動は `gcloud run jobs execute hydra-janitor-dev --region asia-southeast1 --wait` |
 | OAuth クライアント | `ENV=dev ./scripts/gcp-create-first-party-client.sh`（Cloud Run Job。プロキシ不要） |
 | Admin を直接叩く | 例外時だけ `gcloud run services proxy hydra-admin-dev` |

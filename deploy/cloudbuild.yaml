@@ -23,6 +23,17 @@ steps:
       - -t
       - ${_REPO}/ui:${_TAG}
       - .
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: bash
+    args:
+      - deploy/update-run-images.sh
+    env:
+      - PROJECT_ID=${_PROJECT_ID}
+      - REGION=${_REGION}
+      - ENV=${_ENV}
+      - REPO=${_REPO}
+      - TAG=${_TAG}
+      - DEPLOY=${_DEPLOY}
 images:
   - ${_REPO}/kratos:${_TAG}
   - ${_REPO}/hydra:${_TAG}
@@ -30,5 +41,9 @@ images:
 substitutions:
   _TAG: v26.2.0-r1
   _REPO: unused
+  _PROJECT_ID: unused
+  _REGION: asia-southeast1
+  _ENV: dev
+  _DEPLOY: auto
 options:
   logging: CLOUD_LOGGING_ONLY

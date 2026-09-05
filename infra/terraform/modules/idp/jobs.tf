@@ -4,6 +4,10 @@ resource "google_cloud_run_v2_job" "kratos_migrate" {
 
   deletion_protection = var.deletion_protection
 
+  lifecycle {
+    ignore_changes = [template[0].template[0].containers[0].image]
+  }
+
   template {
     template {
       service_account = google_service_account.run.email
@@ -37,6 +41,10 @@ resource "google_cloud_run_v2_job" "hydra_migrate" {
   location = var.region
 
   deletion_protection = var.deletion_protection
+
+  lifecycle {
+    ignore_changes = [template[0].template[0].containers[0].image]
+  }
 
   template {
     template {
@@ -101,6 +109,10 @@ resource "google_cloud_run_v2_job" "hydra_create_client" {
   location = var.region
 
   deletion_protection = var.deletion_protection
+
+  lifecycle {
+    ignore_changes = [template[0].template[0].containers[0].image]
+  }
 
   template {
     template {
@@ -199,6 +211,10 @@ resource "google_cloud_run_v2_job" "hydra_janitor" {
   location = var.region
 
   deletion_protection = var.deletion_protection
+
+  lifecycle {
+    ignore_changes = [template[0].template[0].containers[0].image]
+  }
 
   template {
     template {
