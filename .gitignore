@@ -1,0 +1,10 @@
+.env
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Local compose / tooling
+pgdata/
+*.log

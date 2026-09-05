@@ -1,0 +1,32 @@
+serve:
+  cookies:
+    same_site_mode: Lax
+  public:
+    cors:
+      enabled: true
+      allowed_origins:
+        - http://127.0.0.1:3000
+        - http://127.0.0.1:4455
+
+urls:
+  self:
+    issuer: http://127.0.0.1:4444
+  login: http://127.0.0.1:4455/login
+  consent: http://127.0.0.1:4455/consent
+  logout: http://127.0.0.1:4455/logout
+
+secrets:
+  system:
+    - youReallyNeedToChangeThis
+
+oidc:
+  subject_identifiers:
+    supported_types:
+      - public
+
+log:
+  level: debug
+  leak_sensitive_values: true
+
+strategies:
+  access_token: opaque
