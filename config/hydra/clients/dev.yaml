@@ -1,0 +1,14 @@
+clients:
+  - client_id: nnf3-web
+    client_name: NNF3 Web
+    grant_types:
+      - authorization_code
+      - refresh_token
+    response_types:
+      - code
+    scope: openid offline offline_access email profile
+    redirect_uris:
+      - "${APP_ORIGIN}/callback"
+    token_endpoint_auth_method: none
+    skip_consent: true
+    skip_logout_consent: true

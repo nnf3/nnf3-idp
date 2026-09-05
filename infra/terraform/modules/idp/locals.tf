@@ -18,7 +18,7 @@ locals {
     kratos_migrate      = "kratos-migrate-${var.environment}"
     hydra_migrate       = "hydra-migrate-${var.environment}"
     hydra_janitor       = "hydra-janitor-${var.environment}"
-    hydra_create_client = "hydra-create-client-${var.environment}"
+    hydra_sync_clients = "hydra-sync-clients-${var.environment}"
   }
 
   # Deterministic Cloud Run URLs (no extra load balancer).

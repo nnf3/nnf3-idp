@@ -37,6 +37,8 @@ resource "google_cloud_run_v2_service" "kratos_public" {
   lifecycle {
     ignore_changes = [
       scaling,
+      client,
+      client_version,
       template[0].containers[0].image,
     ]
   }
@@ -155,6 +157,8 @@ resource "google_cloud_run_v2_service" "kratos_admin" {
   lifecycle {
     ignore_changes = [
       scaling,
+      client,
+      client_version,
       template[0].containers[0].image,
     ]
   }
@@ -282,6 +286,8 @@ resource "google_cloud_run_v2_service" "hydra_public" {
   lifecycle {
     ignore_changes = [
       scaling,
+      client,
+      client_version,
       template[0].containers[0].image,
     ]
   }
@@ -371,6 +377,8 @@ resource "google_cloud_run_v2_service" "hydra_admin" {
   lifecycle {
     ignore_changes = [
       scaling,
+      client,
+      client_version,
       template[0].containers[0].image,
     ]
   }
@@ -459,6 +467,8 @@ resource "google_cloud_run_v2_service" "ui" {
   lifecycle {
     ignore_changes = [
       scaling,
+      client,
+      client_version,
       template[0].containers[0].image,
     ]
   }

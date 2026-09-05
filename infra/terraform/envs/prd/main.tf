@@ -14,4 +14,6 @@ module "idp" {
   max_instance_count      = 1
   deletion_protection     = true
   neon_autoscaling_max_cu = 1
+
+  github_deploy = var.github_deploy
 }

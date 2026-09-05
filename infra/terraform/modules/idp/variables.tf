@@ -73,3 +73,40 @@ variable "neon_autoscaling_max_cu" {
   type    = number
   default = 1
 }
+
+variable "github_deploy" {
+  type = object({
+    enabled                = bool
+    owner                  = string
+    repository             = string
+    branch_pattern         = optional(string)
+    tag_pattern            = optional(string)
+    trigger_location       = optional(string, "global")
+    image_tag_substitution = optional(string, "$SHORT_SHA")
+    included_files = optional(list(string), [
+      "deploy/**",
+      "config/kratos/**",
+      "config/hydra/**",
+    ])
+  })
+
+  default = {
+    enabled    = false
+    owner      = ""
+    repository = ""
+  }
+
+  description = "GitHub-connected Cloud Build trigger (第 1 世代). Console でリポジトリ連携済みなら enabled=true だけでよい."
+
+  validation {
+    condition = !var.github_deploy.enabled || (
+      var.github_deploy.owner != "" &&
+      var.github_deploy.repository != "" &&
+      (
+        (var.github_deploy.branch_pattern != null && var.github_deploy.tag_pattern == null) ||
+        (var.github_deploy.branch_pattern == null && var.github_deploy.tag_pattern != null)
+      )
+    )
+    error_message = "When github_deploy.enabled is true, set owner, repository, and exactly one of branch_pattern or tag_pattern."
+  }
+}
