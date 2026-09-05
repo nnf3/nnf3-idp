@@ -1,0 +1,6 @@
+project_id          = "your-gcp-dev-project"
+region              = "asia-southeast1"
+neon_api_key        = "napi_..."
+smtp_connection_uri = "smtps://resend:re_xxxx@smtp.resend.com:465"
+# app_origin        = "https://app-dev.example.com"
+# neon_org_id       = "org-..."

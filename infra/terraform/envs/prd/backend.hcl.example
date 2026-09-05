@@ -1,0 +1,3 @@
+# Copy to backend.hcl (not committed). Use the same bucket as dev; prefix differs.
+bucket      = "YOUR_PROJECT_ID-nnf3-idp-tfstate"
+credentials = "credentials.json"

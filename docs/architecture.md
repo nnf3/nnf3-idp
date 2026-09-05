@@ -81,7 +81,19 @@ oauth2_provider:
   override_return_to: true
 ```
 
-Admin ポート（Hydra `:4445`、Kratos `:4434`）はローカル確認用です。GCP では公開しません。
+Admin ポート（Hydra `:4445`、Kratos `:4434`）はローカル確認用です。GCP では Cloud Run の `ingress=internal` にしてインターネットへ出しません。載せ方は [gcp.md](gcp.md) です。
+
+**GCP（Cloud Run）**
+
+| 用途 | 向き先 |
+|---|---|
+| Hydra issuer / `/oauth2/*` | `hydra-public-dev` など（ブラウザ向け） |
+| ログイン UI | `idp-ui-dev` など（ブラウザ向け） |
+| Kratos browser flow | `idp-ui-dev/self-service/*`（UI 内 nginx proxy で Cookie を同一ホスト化） |
+| Kratos → Hydra Admin | `hydra-admin-dev`（internal、Direct VPC） |
+| UI → Kratos / Hydra Admin | localhost proxy → internal サービス |
+
+Postgres は Neon（`aws-ap-southeast-1`）。Kratos 用と Hydra 用で DB を分け、compute はプロジェクトで共有します。
 
 ## 自社クライアント `nnf3-web`
 

@@ -1,0 +1,21 @@
+serve:
+  cookies:
+    same_site_mode: Lax
+  public:
+    port: 8080
+    cors:
+      enabled: true
+  admin:
+    port: 8080
+
+oidc:
+  subject_identifiers:
+    supported_types:
+      - public
+
+log:
+  level: info
+  leak_sensitive_values: false
+
+strategies:
+  access_token: opaque
