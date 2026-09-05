@@ -44,3 +44,28 @@ variable "first_party_client_id" {
   type    = string
   default = "nnf3-web"
 }
+
+variable "github_deploy" {
+  type = object({
+    enabled                = bool
+    owner                  = string
+    repository             = string
+    branch_pattern         = optional(string)
+    tag_pattern            = optional(string)
+    trigger_location       = optional(string, "global")
+    image_tag_substitution = optional(string, "$SHORT_SHA")
+    included_files = optional(list(string), [
+      "deploy/**",
+      "config/kratos/**",
+      "config/hydra/**",
+    ])
+  })
+
+  default = {
+    enabled    = false
+    owner      = ""
+    repository = ""
+  }
+
+  description = "GitHub-connected Cloud Build trigger (第 1 世代). dev: branch_pattern = ^main$."
+}

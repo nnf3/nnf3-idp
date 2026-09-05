@@ -4,3 +4,12 @@ neon_api_key        = "napi_..."
 smtp_connection_uri = "smtps://resend:re_xxxx@smtp.resend.com:465"
 # app_origin        = "https://app.example.com"
 # neon_org_id       = "org-..."
+
+# GitHub 連携後に有効化（docs/gcp.md の「10. CI/CD」参照）
+# github_deploy = {
+#   enabled                = true
+#   owner                  = "nnf3"
+#   repository             = "nnf3-idp"
+#   tag_pattern            = "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
+#   image_tag_substitution = "$TAG_NAME"
+# }

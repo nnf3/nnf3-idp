@@ -103,7 +103,10 @@ terraform apply \
   -target=module.idp.google_project_service.services \
   -target=module.idp.google_artifact_registry_repository.idp \
   -target=module.idp.google_project_iam_member.cloudbuild_ar \
-  -target=module.idp.google_project_iam_member.cloudbuild_run
+  -target=module.idp.google_project_iam_member.cloudbuild_run \
+  -target=module.idp.google_project_iam_member.cloudbuild_secret_accessor \
+  -target=module.idp.google_project_iam_member.cloudbuild_builder \
+  -target=module.idp.google_service_account.cloudbuild
 ```
 
 ## 4. イメージをビルドする
@@ -122,9 +125,9 @@ Kratos / Hydra の設定入りイメージに加え、公式 UI の前に nginx 
 
 初回は Cloud Run がまだないので **push のみ** です（`DEPLOY=auto` がサービス未作成を検知して deploy をスキップします）。
 
-2 回目以降は `./scripts/build-gcp-images.sh` だけで、git の短い SHA をタグにして **5 サービス + 4 Job すべて** を同じイメージへ更新します。Terraform の `image_tag` は初回 bootstrap 用で、以降は `ignore_changes` により Cloud Build 側の更新を維持します。
+2 回目以降は `./scripts/build-gcp-images.sh` だけで、git の短い SHA をタグにして Cloud Run へ反映します。パイプラインの順序は **migrate（新イメージを直接実行）→ Job/サービス更新 → OAuth クライアント同期** です。migrate はビルド直後のイメージを `docker run` で走らせ、Job 定義の更新はスキーマ適用後にまとめて行います。
 
-スキーマが変わったビルドのあとは `./scripts/gcp-migrate.sh` も実行してください。
+手動で migrate だけ再実行する場合は `./scripts/gcp-migrate.sh`（Cloud Run Job 経由）を使えます。
 
 ## 5. Job まで apply してマイグレーションする
 
@@ -175,19 +178,19 @@ curl -sS "$(terraform -chdir="$TF" output -raw hydra_public_url)/.well-known/ope
 
 アイドル直後は起動に十数秒かかることがあります。
 
-## 8. OAuth クライアントを作る
+## 8. OAuth クライアント
 
-Admin はインターネットに出しません。Cloud Run 同士の呼び出しはデフォルトで外部扱いになり `ingress=internal` に届かないので、Job は自分の中で Hydra Admin を短時間起動して localhost にクライアントを作ります。プロキシは不要です。
+定義は [config/hydra/clients/dev.yaml](../config/hydra/clients/dev.yaml)（prd は `prd.yaml`）です。`${APP_ORIGIN}` は Terraform の `app_origin`（未設定なら UI URL）に置き換わります。
 
-redirect は `app_origin` + `/callback` です。UI のまま試すならそのままで、アプリ origin が決まったら `app_origin` を入れて apply し直してから再実行します。
+CI 有効時は main マージ後に自動同期されます。手動なら:
 
 ```bash
 export PROJECT_ID=YOUR_PROJECT_ID
 export ENV=dev
-./scripts/gcp-create-first-party-client.sh
+./scripts/gcp-sync-oauth-clients.sh
 ```
 
-同じ `client_id` でもう一度実行すると失敗します。redirect を変えるときは `app_origin` を apply し、既存クライアントを消してから再実行します。
+redirect を変えるときは YAML を編集し、`app_origin` を変えた場合は Terraform apply 後に再ビルドまたは sync を実行します。
 
 ## 9. ログインを試す
 
@@ -199,11 +202,57 @@ authorization code は一度しか使えません。callback 側が落ちたあ�
 
 | 作業 | 方法 |
 |---|---|
-| 設定やイメージ更新 | `ENV=dev ./scripts/build-gcp-images.sh`（ビルド + Cloud Run 反映）。スキーマが変わったら migrate |
+| 設定やイメージ更新 | `ENV=dev ./scripts/build-gcp-images.sh`（migrate → Job/サービス更新 → OAuth 同期） |
 | Hydra janitor | 日曜 3:00 JST に Scheduler が `hydra-janitor-dev` を実行。手動は `gcloud run jobs execute hydra-janitor-dev --region asia-southeast1 --wait` |
-| OAuth クライアント | `ENV=dev ./scripts/gcp-create-first-party-client.sh`（Cloud Run Job。プロキシ不要） |
+| OAuth クライアント | `config/hydra/clients/*.yaml` を編集。CI または `ENV=dev ./scripts/gcp-sync-oauth-clients.sh` |
 | Admin を直接叩く | 例外時だけ `gcloud run services proxy hydra-admin-dev` |
 | 破棄 | 対象 env で `terraform destroy`。その環境の Neon プロジェクトも消えます。prd は `deletion_protection` があるので先に外す |
+
+## 10. CI/CD（GitHub → Cloud Build）
+
+**第 1 世代**の GitHub 連携を使います（Console の「Cloud Build GitHub アプリ」）。**接続名は不要**です。スクリーンショットの `nnf3/nnf3-idp` が連携済みなら、そのまま Trigger を Terraform で作れます。
+
+Trigger はデフォルトで `global` に作ります。`Repository mapping does not exist` になるときは、Console でリポジトリを見たときのリージョン（例: `asia-northeast1`）を `trigger_location` に指定してください。Cloud Run の `asia-southeast1` とは別です。
+
+`terraform.tfvars` に追加:
+
+```hcl
+github_deploy = {
+  enabled          = true
+  owner            = "nnf3"
+  repository       = "nnf3-idp"
+  branch_pattern   = "^main$"
+  trigger_location = "global"
+}
+```
+
+```bash
+cd infra/terraform/envs/dev
+terraform apply
+```
+
+**dev / prd の分け方**
+
+| 環境 | GCP プロジェクト | トリガー | イメージタグ |
+|---|---|---|---|
+| dev | `nnf3-idp-dev` など | `main` push | `$SHORT_SHA` |
+| prd | 別プロジェクト推奨 | tag `v*.*.*` push | `$TAG_NAME` |
+
+prd の例:
+
+```hcl
+github_deploy = {
+  enabled                = true
+  owner                  = "nnf3"
+  repository             = "nnf3-idp"
+  tag_pattern            = "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
+  image_tag_substitution = "$TAG_NAME"
+}
+```
+
+リリース: dev で確認後 `git tag v1.0.0 && git push origin v1.0.0` → prd デプロイ。
+
+パスフィルター（デフォルト）: `deploy/**`, `config/kratos/**`, `config/hydra/**`。ドキュメントだけの変更では走りません。
 
 ## やらないこと
 

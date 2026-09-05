@@ -16,11 +16,17 @@ output "hydra_admin_service" {
 
 output "hydra_admin_url" {
   value       = local.hydra_admin_url
-  description = "Internal only. Create clients with hydra_create_client_job, not a public proxy."
+  description = "Internal only. Sync OAuth clients with hydra_sync_clients_job, not a public proxy."
+}
+
+output "hydra_sync_clients_job" {
+  value       = google_cloud_run_v2_job.hydra_sync_clients.name
+  description = "Syncs OAuth clients from config/hydra/clients/{environment}.yaml."
 }
 
 output "hydra_create_client_job" {
-  value = google_cloud_run_v2_job.hydra_create_client.name
+  value       = google_cloud_run_v2_job.hydra_sync_clients.name
+  description = "Deprecated alias for hydra_sync_clients_job."
 }
 
 output "kratos_migrate_job" {
@@ -51,4 +57,14 @@ output "neon_project_id" {
 
 output "authorize_url_example" {
   value = "${local.hydra_public_url}/oauth2/auth?client_id=${var.first_party_client_id}&redirect_uri=${urlencode("${local.app_origin}/callback")}&response_type=code&scope=openid%20offline%20email%20profile&state=gcp-${var.environment}-1"
+}
+
+output "cloudbuild_service_account" {
+  value       = google_service_account.cloudbuild.email
+  description = "User-managed Cloud Build service account for deploy pipelines."
+}
+
+output "cloudbuild_deploy_trigger" {
+  value       = try(google_cloudbuild_trigger.deploy[0].id, null)
+  description = "GitHub-triggered deploy pipeline. Null when github_deploy.enabled is false."
 }

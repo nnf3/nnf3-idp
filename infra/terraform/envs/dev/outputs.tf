@@ -42,6 +42,10 @@ output "hydra_migrate_job" {
   value = module.idp.hydra_migrate_job
 }
 
+output "hydra_sync_clients_job" {
+  value = module.idp.hydra_sync_clients_job
+}
+
 output "hydra_create_client_job" {
   value = module.idp.hydra_create_client_job
 }

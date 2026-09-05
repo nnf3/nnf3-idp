@@ -5,7 +5,11 @@ resource "google_cloud_run_v2_job" "kratos_migrate" {
   deletion_protection = var.deletion_protection
 
   lifecycle {
-    ignore_changes = [template[0].template[0].containers[0].image]
+    ignore_changes = [
+      client,
+      client_version,
+      template[0].template[0].containers[0].image,
+    ]
   }
 
   template {
@@ -43,7 +47,11 @@ resource "google_cloud_run_v2_job" "hydra_migrate" {
   deletion_protection = var.deletion_protection
 
   lifecycle {
-    ignore_changes = [template[0].template[0].containers[0].image]
+    ignore_changes = [
+      client,
+      client_version,
+      template[0].template[0].containers[0].image,
+    ]
   }
 
   template {
@@ -104,20 +112,24 @@ resource "google_cloud_run_v2_job" "hydra_migrate" {
   ]
 }
 
-resource "google_cloud_run_v2_job" "hydra_create_client" {
-  name     = local.job.hydra_create_client
+resource "google_cloud_run_v2_job" "hydra_sync_clients" {
+  name     = local.job.hydra_sync_clients
   location = var.region
 
   deletion_protection = var.deletion_protection
 
   lifecycle {
-    ignore_changes = [template[0].template[0].containers[0].image]
+    ignore_changes = [
+      client,
+      client_version,
+      template[0].template[0].containers[0].image,
+    ]
   }
 
   template {
     template {
       service_account = google_service_account.run.email
-      timeout         = "120s"
+      timeout         = "180s"
 
       containers {
         image   = local.hydra_image
@@ -133,28 +145,19 @@ resource "google_cloud_run_v2_job" "hydra_create_client" {
             i=$((i + 1))
             sleep 1
           done
-          hydra create oauth2-client \
-            --endpoint http://127.0.0.1:8080 \
-            --id "$CLIENT_ID" \
-            --name "NNF3 Web" \
-            --grant-type authorization_code,refresh_token \
-            --response-type code \
-            --scope openid,offline,offline_access,email,profile \
-            --redirect-uri "$REDIRECT_URI" \
-            --token-endpoint-auth-method none \
-            --skip-consent \
-            --skip-logout-consent
+          export HYDRA_ADMIN_URL=http://127.0.0.1:8080
+          /etc/config/hydra/sync-clients.sh
         EOT
         ]
 
         env {
-          name  = "CLIENT_ID"
-          value = var.first_party_client_id
+          name  = "ENV"
+          value = var.environment
         }
 
         env {
-          name  = "REDIRECT_URI"
-          value = "${local.app_origin}/callback"
+          name  = "APP_ORIGIN"
+          value = local.app_origin
         }
 
         env {
@@ -213,7 +216,11 @@ resource "google_cloud_run_v2_job" "hydra_janitor" {
   deletion_protection = var.deletion_protection
 
   lifecycle {
-    ignore_changes = [template[0].template[0].containers[0].image]
+    ignore_changes = [
+      client,
+      client_version,
+      template[0].template[0].containers[0].image,
+    ]
   }
 
   template {
