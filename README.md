@@ -2,13 +2,16 @@
 
 Ory Kratos（ユーザー管理）と Ory Hydra（OAuth 2.0 / OIDC）、PostgreSQL によるセルフホスト IdP です。
 
+認証・認可フローの説明は [docs/](docs/README.md) を見てください。
+
 ## ディレクトリ
 
 ```
 ├── compose.yaml                 # ローカルスタック
 ├── config/                      # Kratos / Hydra / Postgres（後で Terraform からも利用）
+├── docs/                        # 認証・認可の説明
 ├── scripts/                     # ローカル用ヘルパー
-├── apps/                        # アカウント UI / 自社クライアント
+├── apps/sample-web              # ローカル用 callback（:3000）
 └── infra/terraform/             # GCP インフラ
 ```
 
@@ -24,6 +27,7 @@ Ory Kratos（ユーザー管理）と Ory Hydra（OAuth 2.0 / OIDC）、PostgreS
 | Kratos admin（ローカル専用） | http://127.0.0.1:4434 |
 | ログイン / 同意 / 設定 UI | http://127.0.0.1:4455 |
 | Mailslurper（確認メール） | http://127.0.0.1:4436 |
+| sample-web（自社アプリの代わり） | http://127.0.0.1:3000 |
 
 Admin ポートはローカルデバッグ用に公開しています。GCP では公開しないでください。
 
@@ -60,7 +64,7 @@ curl -s http://127.0.0.1:4444/.well-known/openid-configuration
 http://127.0.0.1:4444/oauth2/auth?client_id=nnf3-web&redirect_uri=http://127.0.0.1:3000/callback&response_type=code&scope=openid%20offline%20email%20profile&state=localdev
 ```
 
-UI で登録またはログインしてください。確認メールは Mailslurper に届きます。自社クライアントは同意画面を出さず、`http://127.0.0.1:3000/callback?code=...` に戻ります。アプリ未実装ならそのホストは 404 になります。`code` クエリが付いていれば IdP フローは成功です。
+UI で登録またはログインしてください。確認メールは Mailslurper に届きます。自社クライアントは同意画面を出さず、`http://127.0.0.1:3000/callback` に戻ります。sample-web が code をトークンに交換して表示します。authorization code は一度しか使えないので、接続拒否のあとに同じ URL を開き直しても交換に失敗します。その場合は認可 URL からやり直してください。
 
 ## 補足
 
@@ -68,3 +72,4 @@ UI で登録またはログインしてください。確認メールは Mailslu
 - コンテナ間 URL（`oauth2_provider`、Admin API、`KRATOS_PUBLIC_URL`）は Compose のサービス名を使います。
 - アクセストークンは opaque です。GCP でサービス間検証するときは、後から JWT に切り替えられます。
 - `--dev` はローカルの HTTP cookie 用です。本番では外し、TLS はロードバランサで終端してください。
+- `identity.schema.json: no such file or directory` が出たら、Docker のバインドマウントが空になっています。`docker compose up -d --force-recreate` で直ります。

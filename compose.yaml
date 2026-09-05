@@ -103,6 +103,23 @@ services:
       - "4437:4437"
     networks: [idp]
 
+  sample-web:
+    image: python:3.12-alpine
+    command: python /app/server.py
+    environment:
+      PORT: "3000"
+      HYDRA_TOKEN_URL: http://hydra:4444/oauth2/token
+      FIRST_PARTY_CLIENT_ID: ${FIRST_PARTY_CLIENT_ID:-nnf3-web}
+      FIRST_PARTY_REDIRECT_URI: ${FIRST_PARTY_REDIRECT_URI:-http://127.0.0.1:3000/callback}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/sample-web:/app:ro
+    depends_on:
+      - hydra
+    networks: [idp]
+    restart: unless-stopped
+
 networks:
   idp:
 
