@@ -35,8 +35,9 @@ variable "app_origin" {
 }
 
 variable "image_tag" {
-  type    = string
-  default = "v26.2.0-r1"
+  type        = string
+  default     = "v26.2.0-r1"
+  description = "Bootstrap image tag for initial Cloud Run creation. Image updates are applied by Cloud Build."
 }
 
 variable "first_party_client_id" {

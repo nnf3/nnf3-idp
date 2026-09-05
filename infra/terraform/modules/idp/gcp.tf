@@ -43,3 +43,11 @@ resource "google_project_iam_member" "cloudbuild_ar" {
 
   depends_on = [google_project_service.services]
 }
+
+resource "google_project_iam_member" "cloudbuild_run" {
+  project = var.project_id
+  role    = "roles/run.developer"
+  member  = "serviceAccount:${data.google_project.this.number}@cloudbuild.gserviceaccount.com"
+
+  depends_on = [google_project_service.services]
+}
