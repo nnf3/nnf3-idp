@@ -1,0 +1,5 @@
+CREATE USER kratos WITH PASSWORD 'secret';
+CREATE USER hydra WITH PASSWORD 'secret';
+
+CREATE DATABASE kratos OWNER kratos;
+CREATE DATABASE hydra OWNER hydra;
