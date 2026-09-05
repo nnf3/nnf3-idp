@@ -1,0 +1,34 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - deploy/kratos/Dockerfile
+      - -t
+      - ${_REPO}/kratos:${_TAG}
+      - .
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - deploy/hydra/Dockerfile
+      - -t
+      - ${_REPO}/hydra:${_TAG}
+      - .
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - deploy/ui/Dockerfile
+      - -t
+      - ${_REPO}/ui:${_TAG}
+      - .
+images:
+  - ${_REPO}/kratos:${_TAG}
+  - ${_REPO}/hydra:${_TAG}
+  - ${_REPO}/ui:${_TAG}
+substitutions:
+  _TAG: v26.2.0-r1
+  _REPO: unused
+options:
+  logging: CLOUD_LOGGING_ONLY

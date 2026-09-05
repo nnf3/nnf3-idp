@@ -2,7 +2,7 @@
 
 Ory Kratos（ユーザー管理）と Ory Hydra（OAuth 2.0 / OIDC）、PostgreSQL によるセルフホスト IdP です。
 
-認証・認可フローの説明は [docs/](docs/README.md) を見てください。
+認証・認可フローの説明は [docs/](docs/README.md) を見てください。GCP + Neon への載せ方は [docs/gcp.md](docs/gcp.md) です。
 
 ## ディレクトリ
 
@@ -10,9 +10,10 @@ Ory Kratos（ユーザー管理）と Ory Hydra（OAuth 2.0 / OIDC）、PostgreS
 ├── compose.yaml                 # ローカルスタック
 ├── config/                      # Kratos / Hydra / Postgres（後で Terraform からも利用）
 ├── docs/                        # 認証・認可の説明
-├── scripts/                     # ローカル用ヘルパー
+├── scripts/                     # ローカル / GCP 用ヘルパー
+├── deploy/                      # Cloud Run 用イメージ
 ├── apps/sample-web              # ローカル用 callback（:3000）
-└── infra/terraform/             # GCP インフラ
+└── infra/terraform/             # GCP + Neon（modules / envs/dev / envs/prd）
 ```
 
 ## ローカル URL
@@ -71,5 +72,6 @@ UI で登録またはログインしてください。確認メールは Mailslu
 - ホスト向け URL（`issuer`、ログイン / 同意、`KRATOS_BROWSER_URL`）は `127.0.0.1` を使います。
 - コンテナ間 URL（`oauth2_provider`、Admin API、`KRATOS_PUBLIC_URL`）は Compose のサービス名を使います。
 - アクセストークンは opaque です。GCP でサービス間検証するときは、後から JWT に切り替えられます。
-- `--dev` はローカルの HTTP cookie 用です。本番では外し、TLS はロードバランサで終端してください。
+- `--dev` はローカルの HTTP cookie 用です。GCP では外しています。Cloud Run が HTTPS を終端します。
 - `identity.schema.json: no such file or directory` が出たら、Docker のバインドマウントが空になっています。`docker compose up -d --force-recreate` で直ります。
+- GCP へ載せる手順は [docs/gcp.md](docs/gcp.md) です。

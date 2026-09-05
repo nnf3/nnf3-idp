@@ -8,3 +8,16 @@
 # Local compose / tooling
 pgdata/
 *.log
+
+# GCP service account keys (do not commit)
+credentials.json
+
+# Terraform
+infra/terraform/**/.terraform/
+infra/terraform/**/*.tfstate
+infra/terraform/**/*.tfstate.*
+infra/terraform/**/*.tfvars
+!infra/terraform/**/terraform.tfvars.example
+infra/terraform/**/backend.hcl
+!infra/terraform/**/backend.hcl.example
+infra/terraform/**/crash.log
